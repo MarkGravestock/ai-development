@@ -19,6 +19,17 @@ Most Spring Boot config bugs are a failure of (2): the value was missing, `int` 
 
 Adapted from [Spring Boot Configuration Management Best Practices](https://blog.jetbrains.com/idea/2026/08/spring-boot-configuration-management-best-practices/) (JetBrains, 2026).
 
+## Start here
+
+| Task | Sections, in order |
+|---|---|
+| Adding a configuration value | Where each value belongs → Bind with `@ConfigurationProperties` → Fail at startup |
+| Reviewing config in a PR or codebase | Review pass (last section) — it starts with a grep, then routes each finding |
+| "The env var isn't working" | Environment variables: the name derivation |
+| "Which file set this value?" | Precedence: which source wins |
+| Standing up a new service | Guardrails first → Where each value belongs → Deployment shapes |
+| Config broke in production but not locally | Precedence → Profiles → Secrets |
+
 ---
 
 ## Guardrails first
@@ -206,14 +217,23 @@ underscores, remove dashes, uppercase**.
 | `myapp.servers[0].host` | `MYAPP_SERVERS_0_HOST` |
 | `spring.datasource.url` | `SPRING_DATASOURCE_URL` |
 
-The dash disappears — `MYAPP_PAYMENT_CONNECT_TIMEOUT` binds nothing and fails silently
-unless the property is validated. This is the single most common "the env var isn't
-working" bug, and startup validation is what turns it into a boot failure rather than a
-default.
+The dash disappears. `MYAPP_PAYMENT_CONNECT_TIMEOUT` binds nothing, silently, and the app
+starts on the default — the single most common "the env var isn't working" bug. Derive the
+name in three steps rather than by eye, because the wrong one looks right:
 
-Relaxed binding means the same property may be written `base-url`, `baseUrl`, or
-`base_url` in files. **Write kebab-case in YAML and be consistent** — canonical names are
-what the metadata, the docs, and the env var derivation all key on.
+1. Start from the **canonical** property name (kebab-case, as written in `application.yaml`).
+2. Dots → underscores; dashes → **deleted**, not replaced; `[0]` → `_0_`.
+3. Uppercase the result.
+
+When an env var appears to have no effect, work the loop rather than guessing: check
+`/actuator/env` (or IntelliJ's inlay hint) for what the property actually resolved to and
+which source supplied it — if the property is absent entirely, the name is wrong; if it
+resolved from `application.yaml`, something higher in the ladder is not reaching the
+process.
+
+Relaxed binding accepts `base-url`, `baseUrl` or `base_url` in files. **Write kebab-case
+in YAML, consistently** — the metadata, the docs and the derivation above all key on the
+canonical name.
 
 ---
 
@@ -333,7 +353,19 @@ loads. It catches the profile whose YAML has drifted out of shape, for the cost 
 
 ---
 
-## Review checklist
+## Review pass
+
+Deterministic first, judgement second — the greps find most of it in seconds:
+
+```bash
+grep -rn "@Value" --include=*.java src/main/                 # 1. binding scattered outside config
+grep -rln "@ConfigurationProperties" --include=*.java src/   # 2. then check each for @Validated
+grep -rniE "password|secret|api-?key|token" src/main/resources/  # 3. secrets in the repo
+ls src/main/resources/application-*.y*ml 2>/dev/null       # 4. profile files — read each for env data
+```
+
+Then read each properties class against this table. A row is a finding only if the value
+is genuinely required — an optional knob with a documented default is fine as it is.
 
 | Smell | Fix |
 |---|---|
@@ -347,3 +379,7 @@ loads. It catches the profile whose YAML has drifted out of shape, for the cost 
 | Profile carrying environment data | Move to env vars; keep profiles for bean wiring |
 | Secret in a record that gets logged | Keep secrets out of `toString()`; sanitise actuator endpoints |
 | Config change requiring a rebuild | It is a default in the wrong place |
+
+Report findings as `file:line` + the row that matched. If the same row fires across many
+classes, say so once and name the pattern rather than listing every instance — the fix is
+the same edit repeated.
