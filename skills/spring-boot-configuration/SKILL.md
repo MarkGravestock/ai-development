@@ -40,7 +40,7 @@ reading the rest; prose only covers what they cannot judge.
 | Check | Tool | Catches |
 |---|---|---|
 | Property metadata + IDE completion | `spring-boot-configuration-processor` (annotationProcessor) | Typo'd property names, unknown keys |
-| Startup validation | `@Validated` + `jakarta.validation` on every `@ConfigurationProperties` | Missing/out-of-range values, at boot not at 3am |
+| Startup validation | `spring-boot-starter-validation` + `@Validated` on every `@ConfigurationProperties` | Missing/out-of-range values, at boot not at 3am |
 | Config contract tests | `ApplicationContextRunner` | Invalid config that *doesn't* fail startup |
 | Deprecated/renamed keys on upgrade | `spring-boot-properties-migrator` (temporary runtime dep) | Silently ignored keys after a Boot upgrade |
 | Secrets in git | `gitleaks` / `git-secrets` pre-commit + CI | Keys, tokens, connection strings |
@@ -59,12 +59,15 @@ static final ArchRule value_annotations_live_in_config =
 
 ## Where each value belongs
 
-| Kind of value | Example | Lives in |
+| Category | Example | Lives in |
 |---|---|---|
-| Application default | timeouts, retry limits, page sizes, feature defaults | `application.yaml` **inside the jar** |
-| Environment shape | base URLs, queue names, pool sizes, log levels | Env vars / ConfigMap, per deployment |
-| Secret | passwords, API keys, certificates, private keys | Secrets manager (Vault, AWS/GCP/Azure), mounted or fetched |
-| Behaviour switch | which beans are wired (embedded broker vs real) | Profile |
+| Application defaults | timeouts, retry limits, page sizes, feature defaults | `application.yaml` **inside the jar** |
+| Deployment configuration | database hosts, service URLs, queue names, pool sizes | Env vars / ConfigMap, supplied by the platform |
+| Secrets | passwords, API keys, certificates, private keys | Secrets manager (Vault, AWS/GCP/Azure), mounted or fetched |
+| Behaviour switches | which beans are wired (embedded broker vs real) | Profile |
+
+The first three are the split that matters; the fourth is Spring-specific and is the one
+teams most often abuse (see Profiles below).
 
 Defaults ship with the code so the app runs with nothing set. Everything a deployment
 changes must be overridable **without a rebuild** — which is exactly what the precedence
@@ -147,14 +150,22 @@ Binding to target ... failed:
     Reason: must not be blank
 ```
 
-**Use wrapper types when absence must be distinguished from a default.** A missing value
-binds `int` to `0` and `boolean` to `false` — `@Min(0)` is happy, and you ship a client
-with zero retries. `Integer` + `@NotNull` names the missing property at boot.
+Validation only runs if `spring-boot-starter-validation` is on the classpath. Without it
+the annotations bind and do nothing — no error, no warning.
+
+**Use wrapper types when absence must be distinguished from a Java default.** A missing
+value binds `int` to `0` and `boolean` to `false`, and whether that is caught depends on
+whether your range excludes the default:
 
 ```java
-@NotNull @Min(0) Integer maxRetries      // ✅ missing → startup failure
-@Min(0) int maxRetries                   // ❌ missing → silently 0
+@NotNull @Min(0) Integer maxRetries   // ✅ missing → startup failure
+@Min(1) @Max(5) int retries           // ✅ missing → 0, which fails @Min(1)
+@Min(0) int maxRetries                // ❌ missing → silently 0, and 0 is legal
+boolean sandbox                       // ❌ missing → silently false, indistinguishable
 ```
+
+So the primitive is safe only when the valid range excludes `0` (or `false`). When zero is
+a legitimate value, the type has to carry the absence — `Integer` + `@NotNull`.
 
 Intentional defaults are explicit, not implicit:
 
@@ -192,8 +203,11 @@ is in the Spring Boot reference under *Externalized Configuration*; reach for it
 debugging a genuine surprise.
 
 **Debugging "which source set this?"** — IntelliJ IDEA shows the resolved value as an
-inlay hint next to the property and identifies the source supplying it (and whether it is
-overridden). At runtime, `/actuator/configprops` and `/actuator/env` give the same answer;
+inlay hint next to the property; selecting the hint names the source supplying it and
+whether another source overrides it. It also navigates between a property declaration, the
+`@ConfigurationProperties` member it binds to, and every usage — for your own properties
+that navigation is driven by the metadata `spring-boot-configuration-processor` generates,
+which is the second reason to keep it on the annotation processor path. At runtime, `/actuator/configprops` and `/actuator/env` give the same answer;
 both must be secured and value-sanitised in production:
 
 ```yaml
@@ -309,6 +323,19 @@ logs the first time someone logs the properties object.
 There is no single right answer — pick for the deployment you have, and keep the
 defaults-in-the-app half constant across all three.
 
+A volume-mounted ConfigMap reads through the same `configtree:` mechanism as mounted
+secrets — file name is the property, file contents is the value:
+
+```yaml
+spring:
+  config:
+    import: "optional:configtree:/etc/config/"   # ConfigMap, volume mounted
+```
+
+Mounted secrets use the same mechanism at a different path (see Secrets below). Mounting
+beats env vars for both: values update without rebuilding the pod spec, and no secret
+lands in the process environment.
+
 ---
 
 ## Test the configuration
@@ -371,7 +398,8 @@ is genuinely required — an optional knob with a documented default is fine as 
 |---|---|
 | `@Value` outside a config class | Bind a `@ConfigurationProperties` record |
 | `@ConfigurationProperties` without `@Validated` | Add it, plus constraints on every field |
-| `int`/`boolean` for a required value | `Integer`/`Boolean` + `@NotNull`, or an explicit `@DefaultValue` |
+| Constraints present but `spring-boot-starter-validation` missing | Add the starter — the annotations are inert without it |
+| `int`/`boolean` for a required value, where `0`/`false` is legal | `Integer`/`Boolean` + `@NotNull`, or a range that excludes the default (`@Min(1)`), or `@DefaultValue` |
 | `long timeoutMillis` | `Duration` |
 | Nested properties class without `@Valid` | Add `@Valid` — nested constraints are otherwise skipped |
 | Production URL or credential in `application-prod.yaml` | Env var / ConfigMap; secret to the secrets manager |
