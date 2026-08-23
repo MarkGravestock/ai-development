@@ -1,11 +1,63 @@
 # The lenses
 
+## Contents
+
+- [Cynefin](#cynefin) — what kind of problem is this, and does analysis even help
+- [Impact mapping](#impact-mapping) — why are we doing this, whose behaviour must change
+- [Wardley mapping](#wardley-mapping) — where to invest, build vs buy, what commoditises
+- [Specification by example](#specification-by-example) — what "done" means for a rule
+- [Domain storytelling](#domain-storytelling) — how the work happens today, and who does it
+- [Event storming](#event-storming) — what happens over time, and where the seams are
+- [Domain-driven design](#domain-driven-design) — what the concepts are called, where a model stops holding
+- [Systems thinking](#systems-thinking) — why the problem keeps coming back
+- [LeSS principles](#less-principles) — are we optimising the part or the whole
+- [Sources](#sources)
+
 One running example throughout: **an e-bike hire scheme**. The same problem seen seven
 ways, so the difference between the lenses is visible rather than described.
 
 Read the entry for the lens you picked in [SKILL.md](SKILL.md). Each links its canonical
 source rather than transcribing it — a stale copy of someone else's method is worse than
 a link, because it gets believed.
+
+---
+
+## Cynefin
+
+**Answers:** what kind of problem is this, and does analysing it harder actually help?
+
+Snowden's sense-making framework ([Cynefin.io](https://cynefin.io/wiki/Cynefin)). Five
+domains, each with a different valid move — the point is that a method which works in one
+domain fails in another:
+
+| Domain | Relationship between cause and effect | Sequence | Practice |
+|---|---|---|---|
+| Clear | Obvious to anyone | sense → categorise → respond | Best practice |
+| Complicated | Knowable, given expertise | sense → analyse → respond | Good practice |
+| Complex | Only visible in hindsight | probe → sense → respond | Emergent |
+| Chaotic | None discernible | act → sense → respond | Novel |
+| Confused | You don't know which domain you're in | Split it up and place the pieces | — |
+
+Two things worth holding onto. **Confused is the default**, not an edge case — most
+arguments about approach are really two people placing the same problem in different
+domains. And the Clear/Chaotic boundary is a **cliff**, not a border: complacency about
+something "obvious" fails suddenly rather than gradually.
+
+**Output:** an agreement about which domain the problem is in, and therefore which moves
+are legitimate.
+
+**Example.** "Riders abandon the app at payment." Treated as complicated, this becomes a
+month of funnel analysis and a redesign. Placed in complex, it becomes four safe-to-fail
+probes next week — one-tap wallets for twenty users, a price shown earlier, a saved card,
+a different error message — and you keep whichever moves the number. Neither approach is
+wrong in general; the question is which domain you are in, and nobody had asked.
+
+**Fails when** it's used as a taxonomy for filing problems rather than a prompt for
+choosing a move. The output should change what you do on Monday.
+
+**Why it comes first:** analysis lenses are complicated-domain tools. In the complex
+domain a walking skeleton is the probe, and it teaches you more than any workshop would —
+which is the whole argument behind this repo's delivery loop.
 
 ---
 
@@ -234,6 +286,48 @@ to is a picture of a feeling. Anchor each loop in something observed.
 
 ---
 
+## LeSS principles
+
+**Answers:** are we optimising a part while the whole gets worse, and is the organisation
+itself the constraint?
+
+The principles, not the framework ([LeSS](https://less.works/less/principles/overview)).
+Sprints, a cross-team backlog and feature teams solve a multi-team coordination problem;
+the principles underneath travel much further. The ones that do analytical work:
+
+- **Systems thinking** — customers experience end-to-end cycle time, not how fast any one
+  step ran. Local efficiency is not the goal and often opposes it.
+- **Whole-product focus** — nobody buys half a product. A part that is finished while the
+  whole is not is inventory, not progress.
+- **Customer-centric** — value and waste are defined by the paying customer, not by the
+  team that produced the artefact.
+- **Queueing theory** — manage queue size, work-in-progress and variability rather than
+  utilisation. A busy team and a fast team are different things.
+- **More with LeSS** — fewer roles, artefacts and handoffs, not more process to manage the
+  handoffs you already have.
+
+Useful question: *whose local optimum is this, and what does it cost the whole?*
+
+**Output:** a named local optimisation, and what it costs end to end.
+
+**Example.** Bike-fault reports take nine days to resolve. Every team is hitting its
+numbers: the app team ships promptly, maintenance closes tickets fast, data delivers
+reports on time. The nine days are almost entirely queue — waiting for the weekly sync
+where the three teams reconcile who owns a fault. Each team is locally efficient and the
+whole is slow, so no team's dashboard shows the problem. The fix is a boundary change, not
+a productivity push.
+
+**Fails when** it's used to argue for adopting LeSS. As a lens the question is about flow
+and whole-product thinking; the Scrum-at-scale mechanics are a separate decision that
+needs a multi-team problem to justify it.
+
+**Overlaps with systems thinking**, deliberately. That lens hunts feedback loops inside
+the system you're building; this one asks whether the organisation building it is the
+loop. When a fix keeps failing because three teams must agree, you are in this entry, not
+that one.
+
+---
+
 ## Sources
 
 - Gojko Adzic, *Impact Mapping* (2012) and *Specification by Example* (2011)
@@ -242,3 +336,8 @@ to is a picture of a feeling. Anchor each loop in something observed.
 - Alberto Brandolini, [*Introducing EventStorming*](https://www.eventstorming.com/book/)
 - Eric Evans, *Domain-Driven Design* (2003); Vaughn Vernon, *Implementing DDD* (2013)
 - Donella Meadows, *Thinking in Systems* (2008)
+- Dave Snowden, [Cynefin](https://cynefin.io/wiki/Cynefin); Snowden & Boone, "A Leader's
+  Framework for Decision Making", *HBR* (2007)
+- Craig Larman & Bas Vodde, [LeSS principles](https://less.works/less/principles/overview)
+- Susanne Kaiser, *Architecture for Flow* (2025) — Wardley mapping, DDD and Team
+  Topologies as one chain

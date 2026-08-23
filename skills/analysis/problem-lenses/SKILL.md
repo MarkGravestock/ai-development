@@ -1,16 +1,33 @@
 ---
 name: problem-lenses
-description: Seven lenses for analysing a problem before building it — impact mapping, Wardley mapping, specification by example, domain storytelling, event storming, domain-driven design, systems thinking. Use whenever work is starting and the problem is not yet clear: vague or contested requirements, an unfamiliar domain, arguments about scope, build-vs-buy calls, a bug or complaint that keeps coming back, or a request to frame a problem, run discovery, model a domain, find bounded contexts, map impacts, or work out what to build first. Routes to the one lens that answers the question actually blocking progress, rather than running all seven.
+description: Nine lenses for analysing a problem before building it — Cynefin, impact mapping, Wardley mapping, specification by example, domain storytelling, event storming, domain-driven design, systems thinking, LeSS principles. Use whenever work is starting and the problem is not yet clear: vague or contested requirements, an unfamiliar domain, arguments about scope or approach, build-vs-buy calls, a bug or complaint that keeps coming back, teams hitting their numbers while delivery stays slow, or a request to frame a problem, run discovery, model a domain, find bounded contexts, map impacts, or work out what to build first. Routes to the one lens that answers the question actually blocking progress, rather than running all nine.
 ---
 
 # Problem lenses
 
-Seven ways of looking at a problem before committing to a solution. Each answers a
+Nine ways of looking at a problem before committing to a solution. Each answers a
 different question. The value is in picking the one that answers the question you are
-actually stuck on — running all seven is the ceremony this repo exists to avoid.
+actually stuck on — running all nine is the ceremony this repo exists to avoid.
 
 Full technique, worked examples and failure modes: [lenses.md](lenses.md). Read the entry
-for the lens you pick; don't read all seven.
+for the lens you pick; don't read all nine.
+
+## First: what kind of problem is it?
+
+Cynefin comes before the others because it decides whether analysis is the right move at
+all. Analysing a complex problem harder does not make it tractable; probing does.
+
+| Domain | Cause and effect | What to do |
+|---|---|---|
+| Clear | Obvious | Apply the known answer. No lens needed |
+| Complicated | Knowable with expertise | Analyse — this is where most lenses below earn their keep |
+| Complex | Only visible afterwards | Run a safe-to-fail probe. A walking skeleton beats a workshop |
+| Chaotic | None | Stabilise first, analyse later |
+| Confused | You don't know which | The dangerous default — say so out loud, then split the problem |
+
+The common mistake is treating a complex problem as complicated: more analysis, more
+diagrams, more confident plans, and none of it survives contact. Full detail in
+[lenses.md](lenses.md).
 
 ## Route by the question
 
@@ -23,6 +40,7 @@ for the lens you pick; don't read all seven.
 | What are the concepts really called, and where does one model stop being true? | Domain-driven design |
 | What exactly does "done" mean for this rule? | Specification by example |
 | Why does this keep coming back no matter what we fix? | Systems thinking |
+| Are we optimising a part while the whole gets worse? Is the org the constraint? | LeSS principles |
 
 If two rows fit, you have two problems — take the one that blocks the next slice.
 
@@ -58,6 +76,15 @@ They are not a pipeline, but some pairs are genuinely strong:
 - **Wardley mapping → systems thinking.** Both reason about the whole; Wardley adds
   evolution over time, which is what makes "we'll build our own" look different in year
   three.
+- **Wardley mapping → DDD → team boundaries.** Susanne Kaiser's *Architecture for Flow*
+  runs these as one chain: the map says where the differentiating work is, DDD draws the
+  boundaries around it, and teams are then aligned to those boundaries rather than cutting
+  across them. The third leg is Team Topologies, which this skill does not cover — LeSS
+  principles below reach the same organisational question from the flow side.
+- **LeSS principles ↔ systems thinking.** Related but not the same lens. Systems thinking
+  looks for loops inside the system you're building; LeSS looks at whether the
+  organisation building it is the constraint. If every fix needs three teams to agree, the
+  loop you're hunting is an org chart.
 
 Two flows worth knowing, one for each common starting point:
 

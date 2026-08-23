@@ -43,7 +43,7 @@ escalate or descend.
 
 | Skill | Purpose |
 |---|---|
-| `problem-lenses` | Seven problem-analysis lenses — impact mapping, Wardley mapping, spec by example, domain storytelling, event storming, DDD, systems thinking. Routes by the question you're stuck on |
+| `problem-lenses` | Nine problem-analysis lenses — Cynefin, impact mapping, Wardley mapping, spec by example, domain storytelling, event storming, DDD, systems thinking, LeSS principles. Routes by the question you're stuck on; Cynefin first, since it decides whether analysis helps at all |
 
 **Design (`design/`)**
 
