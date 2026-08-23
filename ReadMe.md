@@ -49,7 +49,7 @@ investment proportionate to half-life.
 | `practices/delivery-process.md` | The OODA loop, walking skeleton, MVP slicing, why short feedback loops |
 | `practices/guardrails-catalogue.md` | Guardrails by category and type, Java and Python |
 | `practices/dependencies.md` | Libraries as guardrails; supply-chain gates |
-| `skills/` | On-demand skills — design, testing, writing (catalogue: [skills/README.md](skills/README.md)) |
+| `skills/` | On-demand skills — analysis, design, testing, writing (catalogue: [skills/README.md](skills/README.md)) |
 | `tooling/approach.md` | Guardrails thesis, control taxonomy, evidence base, known limits |
 | `tooling/harness/` | Harness configuration and the principles behind it — opencode two-tier model setup ([tooling/harness/README.md](tooling/harness/README.md)) |
 | `tooling/sync.py` | Installs skills into Claude Code, Tabnine and opencode (via `uv run poe sync`) |
