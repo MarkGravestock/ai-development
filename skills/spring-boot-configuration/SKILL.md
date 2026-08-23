@@ -27,6 +27,7 @@ Adapted from [Spring Boot Configuration Management Best Practices](https://blog.
 | Reviewing config in a PR or codebase | Review pass (last section) — it starts with a grep, then routes each finding |
 | "The env var isn't working" | Environment variables: the name derivation |
 | "Which file set this value?" | Precedence: which source wins |
+| Configuring a third-party client or library | Binding a type you don't own |
 | Standing up a new service | Guardrails first → Where each value belongs → Deployment shapes |
 | Config broke in production but not locally | Precedence → Profiles → Secrets |
 
@@ -86,9 +87,18 @@ myapp:
 
 ## Bind with @ConfigurationProperties, not @Value
 
+Three ways to reach a property, and only one of them scales:
+
+| Access | Use when |
+|---|---|
+| `@ConfigurationProperties` | Related values that belong together — the default |
+| `@Value` | A genuinely isolated value (`@Value("${spring.application.name}")` in a log line) |
+| `Environment` | Property names resolved dynamically at runtime, or infrastructure code that needs the property sources directly |
+
 `@Value` gives you a `String` typed by hope, no validation, no grouping, no IDE metadata,
-and one more class coupled to a property name. Use it only for a genuine one-off
-(`@Value("${spring.application.name}")` in a log line).
+and one more class coupled to a property name. Scattered across services, the property
+names become hard to discover, validate and refactor — which is the whole argument for a
+dedicated configuration type.
 
 ```java
 // ✅ Type-safe, grouped, validated, immutable — records bind by constructor
@@ -135,6 +145,48 @@ the binding explicit (and it is what tests use).
   `URI`, enums, `Period`. Spring binds them; you stop guessing units.
 - Nest with `@Valid`, or nested constraints are not evaluated.
 - Group by concern (`myapp.payment.*`), not by class.
+
+---
+
+## Binding a type you don't own
+
+A third-party class can't carry `@ConfigurationProperties`. Two ways in, and the second is
+usually right.
+
+Annotate the `@Bean` method when the third-party type has setters:
+
+```java
+@Bean
+@ConfigurationProperties(prefix = "third-party.client")
+ThirdPartyClientProperties clientProperties() {
+    return new ThirdPartyClientProperties();
+}
+```
+
+Bind your own record and construct from it when the type is immutable, has no setters, or
+you would rather not tie your configuration surface to its shape:
+
+```java
+@ConfigurationProperties("third-party.client")
+record ClientProperties(URI baseUrl, Duration connectTimeout, Duration readTimeout) {}
+
+@Configuration
+@EnableConfigurationProperties(ClientProperties.class)
+class ClientConfiguration {
+
+    @Bean
+    ThirdPartyClient thirdPartyClient(ClientProperties properties) {
+        return new ThirdPartyClient(properties.baseUrl(),
+                                    properties.connectTimeout(),
+                                    properties.readTimeout());
+    }
+}
+```
+
+The wrapper is the better default: your property names stop being hostage to the library's
+field names. A library upgrade that renames a field becomes a one-line change in the `@Bean`
+method, rather than a config migration across every deployment — and the wrapper is a place
+to hang `@Validated` that the library's own class will never give you.
 
 ---
 
@@ -238,6 +290,20 @@ name in three steps rather than by eye, because the wrong one looks right:
 1. Start from the **canonical** property name (kebab-case, as written in `application.yaml`).
 2. Dots → underscores; dashes → **deleted**, not replaced; `[0]` → `_0_`.
 3. Uppercase the result.
+
+**Or sidestep the derivation entirely.** Name the variable yourself in the properties file
+with a placeholder. The binding becomes explicit, greppable, and immune to the dash rule:
+
+```properties
+app.promotion-service.base-url=${PROMOTION_SERVICE_URL}
+app.promotion-service.timeout=${PROMOTION_SERVICE_TIMEOUT:3s}
+```
+
+`${VAR}` with no default fails placeholder resolution at startup when the variable is
+unset — the same fail-fast you get from `@NotBlank`, one layer earlier. `${VAR:3s}` supplies
+a fallback instead. Prefer this wherever a deployment is expected to set the value: it puts
+the environment variable's real name in the same file that documents the property, so
+nobody has to derive anything.
 
 When an env var appears to have no effect, work the loop rather than guessing: check
 `/actuator/env` (or IntelliJ's inlay hint) for what the property actually resolved to and
