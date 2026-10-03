@@ -62,6 +62,7 @@ escalate or descend.
 
 | Skill | Purpose |
 |---|---|
+| `test-strategy-review` | Meta: review a suite for correctness, gaps against risk, and readability; routes to the stack skills ([python.md](testing/test-strategy-review/python.md) for pytest) |
 | `bug-magnet` | Edge-case and bug-discovery prompts for testing |
 | `groovy-spock-testing` | Groovy/Spock test DSL and fixture patterns |
 | `java-junit5-testing` | Java/JUnit 5 BDD-style tests, assertion DSLs, test data builders |
