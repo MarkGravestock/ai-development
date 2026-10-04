@@ -58,6 +58,9 @@ off against each other; name the trade-off rather than pretending all twelve are
   wrap them and test the wrapper against the real thing.
 - **Non-deterministic**: wall-clock time, randomness, ordering, network, shared mutable
   fixtures, sleeps. Flaky tests are a correctness defect, not an infrastructure one.
+- **Reads the real clock**: code under test calls "now" itself, so time-dependent tests
+  either race the wall clock, sleep, or assert loosely ("within a second"). Inject a
+  controllable clock instead (see Completeness).
 - **Order-dependent**: passes alone, fails in a different order (or the reverse).
 - **Silently skipped**: a skip condition (missing Docker, env var, platform) means CI can
   pass without running it. A test that never runs in CI counts as missing.
@@ -79,6 +82,11 @@ many fast, isolated tests; fewer integration tests; a handful end-to-end. Then c
   the real thing or a faithful container, not a mock of itself.
 - **Contracts** with other services are checked by a contract or schema test, not by
   hoping both sides agree.
+- **Time-dependent rules** (expiry, scheduling, retries and back-off, rate limits,
+  cut-offs, time zones, month end, DST) are tested with a controllable clock: injected,
+  set to a fixed instant, and advanced by the test. Each rule is pinned just before,
+  exactly at, and after its boundary. Stack equivalents: `java.time.Clock` with a fixed
+  or mutable test clock on the JVM; `now: Callable[[], datetime]` plus a fake in Python.
 - **Wide input spaces** (parsers, money, dates, serialisation round-trips) have
   property-based tests, not just examples.
 - **Legacy or untested code** about to change has characterisation tests first.

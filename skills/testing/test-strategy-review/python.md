@@ -15,7 +15,7 @@ property, mutation, containers): recommend the mix-in by name rather than hand-r
 | Can't fail | `pytest.raises(Exception)` or no `match=`; `assert mock.called` only | Narrow exception type plus `match=`; assert on the outcome |
 | Mock drift | `Mock()` / `MagicMock()` without a spec accepts any attribute | `create_autospec(...)` or `spec_set=`; better, an in-memory fake (`cosmic-python`) |
 | Patching internals | `mock.patch("pkg.module._helper")` | Inject the dependency; patch only at a boundary |
-| Time and randomness | `datetime.now()`, `random`, `uuid4()` inside logic | Inject a clock or RNG (`cupid-python`); [time-machine](https://github.com/adamchainz/time-machine) or [freezegun](https://github.com/spulec/freezegun) only at the edge |
+| Time and randomness | `datetime.now()`, `time.time()`, `random`, `uuid4()` inside logic; `sleep` in tests | Inject a clock or RNG (`cupid-python`, and Controllable clock below) |
 | Shared state | `scope="session"` or `"module"` fixtures returning mutable objects | Function scope, or immutable values |
 | Order dependence | Passes in file order only | Run with [pytest-randomly](https://github.com/pytest-dev/pytest-randomly) |
 | Unseeded generated data | Faker, factory_boy or `random` values differ per run, so failures don't reproduce | pytest-randomly also reseeds `random`, Faker and factory_boy per test and prints the seed |
@@ -35,6 +35,23 @@ property, mutation, containers): recommend the mix-in by name rather than hand-r
   [diff-cover](https://github.com/Bachmann1234/diff_cover) to hold the line on new code.
 - **Markers**: `slow` and `integration` are registered and used, and CI runs them
   somewhere, even if the fast local loop deselects them.
+
+## Controllable clock
+
+- Domain code takes `now: Callable[[], datetime]`, defaulting to `lambda: datetime.now(UTC)`
+  (the shape `cupid-python` recommends). Tests pass a fake that satisfies the same callable
+  shape structurally, so the domain never imports from tests.
+- The fake starts at a fixed, timezone-aware instant and moves only when told: `advance()`
+  for elapsed time, `set()` for jumps. Refuse naive datetimes.
+- Test the boundary exactly: one microsecond before, at, and after.
+- Long-running code that also waits: inject the sleep alongside the clock, so the fake can
+  advance instead of blocking.
+- Third-party code that reads the clock and can't be given one:
+  [time-machine](https://github.com/adamchainz/time-machine) (or
+  [freezegun](https://github.com/spulec/freezegun)) at that edge only. Patching time
+  everywhere hides the missing seam.
+- python-templates' `testing-clock` mix-in, where available, provides a ready-made
+  `FakeClock` and an example.
 
 ## Understandability
 
