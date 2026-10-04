@@ -1,6 +1,8 @@
 # Brief: Allium + ATDD workflow for opencode (Flask spike)
 
 Status: spike, not yet run. Outcome goes in `RETRO.md` beside this file.
+Run [../minimal-loop/](../minimal-loop/README.md) first; this is the upgrade if plain
+examples prove too weak.
 
 You are setting up a lightweight spec-driven workflow in an existing Flask
 repository and proving it on one feature. Read this whole brief before

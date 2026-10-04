@@ -62,6 +62,7 @@ escalate or descend.
 
 | Skill | Purpose |
 |---|---|
+| `executable-specs` | Spec-first loop: failing examples against a DSL, human review and lock, then implement to green (python-templates `spec-lock` mix-in) |
 | `test-strategy-review` | Meta: review a suite for correctness, gaps against risk, and readability; routes to the stack skills ([python.md](testing/test-strategy-review/python.md) for pytest) |
 | `bug-magnet` | Edge-case and bug-discovery prompts for testing |
 | `groovy-spock-testing` | Groovy/Spock test DSL and fixture patterns |
