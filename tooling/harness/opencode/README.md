@@ -7,7 +7,8 @@ Applies principles 1, 3 and 4 from [../README.md](../README.md). Setup takes abo
 evening. No plugins.
 
 Model choices live in [models.md](./models.md). Working examples in
-[examples/](./examples).
+[examples/](./examples). A spike brief for a spec-driven loop (Allium spec plus four-layer
+ATDD tests, four commands) is in [allium-atdd/BRIEF.md](./allium-atdd/BRIEF.md).
 
 ## Step 1 — Two OpenRouter keys
 
