@@ -1,0 +1,13 @@
+# Replace with your rule; keep the id, file name and test id in step.
+id: no-wall-clock-in-domain
+language: python
+severity: error
+message: Domain code must not read the wall clock.
+note: "Take `now: Callable[[], datetime]` as a parameter and pass a FakeClock in tests."
+# url: link to the issue or PR comment where this was first raised
+files: ["src/*/domain/**/*.py"]
+rule:
+  any:
+    - pattern: datetime.now($$$)
+    - pattern: datetime.utcnow()
+    - pattern: time.time()

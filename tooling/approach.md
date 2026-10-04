@@ -56,4 +56,4 @@ before touching unfamiliar code.
 - Tiny always-loaded instruction file; everything else loaded on demand
 - Skills open by running the gauntlet, then spend model attention only on what
   tools cannot judge — design intent, naming, missing cases, security reasoning
-- Every new rule gets one question first: can a tool enforce this instead?
+- Every new rule gets one question first: can a tool enforce this instead? How to answer it as problems recur: [growing-guardrails.md](../practices/growing-guardrails.md).

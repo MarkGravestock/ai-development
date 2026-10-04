@@ -48,6 +48,7 @@ investment proportionate to half-life.
 |---|---|
 | `practices/delivery-process.md` | The OODA loop, walking skeleton, MVP slicing, why short feedback loops |
 | `practices/guardrails-catalogue.md` | Guardrails by category and type, Java and Python |
+| `practices/growing-guardrails.md` | Turning repeat findings into deterministic rules; which tool for which shape of rule |
 | `practices/dependencies.md` | Libraries as guardrails; supply-chain gates |
 | `skills/` | On-demand skills — analysis, design, testing, writing (catalogue: [skills/README.md](skills/README.md)) |
 | `tooling/approach.md` | Guardrails thesis, control taxonomy, evidence base, known limits |

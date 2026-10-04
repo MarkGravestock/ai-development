@@ -57,6 +57,11 @@ COMPANION_FILES = [
         ],
         "writing-style.md",
     ),
+    (
+        REPO_ROOT / "practices/growing-guardrails.md",
+        [SKILLS_ROOT / "promote-to-guardrail"],
+        "growing-guardrails.md",
+    ),
 ]
 
 

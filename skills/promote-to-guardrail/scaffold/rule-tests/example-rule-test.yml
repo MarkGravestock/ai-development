@@ -1,0 +1,6 @@
+id: no-wall-clock-in-domain
+valid:
+  - "expires = now() + ttl"
+invalid:
+  - "expires = datetime.now(UTC) + ttl"
+  - "started = time.time()"
