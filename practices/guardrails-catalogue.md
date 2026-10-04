@@ -18,6 +18,8 @@ commitments — check the bundles for what is actually wired up.
 | Coverage gates | Feedback | JaCoCo violationRules | coverage.py fail_under, diff-cover |
 | Custom rules (grown from repeat findings) | Feedback | forbidden-apis, ArchUnit, PMD XPath, Error Prone BugPattern | Ruff banned-api, ast-grep, Opengrep/Semgrep, Fixit |
 | Complexity budgets | Feedback | PMD cyclomatic rules | Ruff mccabe, xenon |
+| Code health (size, nesting, cognitive complexity) | Feedback | PMD `CognitiveComplexity`, `ExcessiveParameterList` | Ruff `PLR` size rules, complexipy |
+| Duplication | Feedback | PMD CPD | jscpd |
 | Dead code | Feedback | unused-deps reports, Qodana | vulture, deptry |
 | Security SAST | Feedback | SpotBugs + FindSecBugs, Semgrep | Bandit, Semgrep |
 | Secrets scanning | Feedback | gitleaks (language-agnostic) | gitleaks |
@@ -47,6 +49,25 @@ drift. Set them up before the first agent session, not after.
 Codegen from spec turns hallucinated APIs into compile or type errors:
 generating DTOs and clients from OpenAPI or Avro converts an inferential
 failure mode into a computational one.
+
+## Code health and hotspots
+
+Cyclomatic budgets miss what makes code hard to change. A function with seven
+parameters nested five deep can score cognitive complexity 19 and still pass a
+radon grade-C ceiling. Gate the code-health smells directly: argument count and
+nesting (Ruff `PLR`), cognitive complexity (complexipy, or PMD's rule on the
+JVM) and duplication (jscpd, PMD CPD). On existing code, gate changes rather
+than the whole codebase: baseline today's hits and let the count only fall.
+
+Hotspots are the behavioural half of what CodeScene sells: files that change
+often *and* are unhealthy, files that change together, code with one person
+who knows it. That signal is statistical, so it's a report, not a gate. Run
+[code-maat](https://github.com/adamtornhill/code-maat) over the git log, look
+at it in [CodeCharta](https://github.com/maibornwolff/codecharta) now and then,
+and use the top hotspots to decide where refactoring and new rules go first.
+Buy [CodeScene](https://codescene.com/product/code-health-mcp) or SonarQube
+Server when you want health, behaviour and an agent-facing MCP server in one
+product; the free tools above cover the deterministic part.
 
 ## Stack asymmetry
 
