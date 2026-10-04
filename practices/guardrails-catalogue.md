@@ -16,6 +16,7 @@ commitments — check the bundles for what is actually wired up.
 | Property-based testing | Feedback | jqwik | Hypothesis |
 | Mutation testing | Feedback | PIT, incremental mode | mutmut, cosmic-ray |
 | Coverage gates | Feedback | JaCoCo violationRules | coverage.py fail_under, diff-cover |
+| Custom rules (grown from repeat findings) | Feedback | forbidden-apis, ArchUnit, PMD XPath, Error Prone BugPattern | Ruff banned-api, ast-grep, Opengrep/Semgrep, Fixit |
 | Complexity budgets | Feedback | PMD cyclomatic rules | Ruff mccabe, xenon |
 | Dead code | Feedback | unused-deps reports, Qodana | vulture, deptry |
 | Security SAST | Feedback | SpotBugs + FindSecBugs, Semgrep | Bandit, Semgrep |
@@ -27,6 +28,7 @@ commitments — check the bundles for what is actually wired up.
 | Sandboxing | Feedforward | Devcontainers, read-only mounts, egress limits | Same |
 
 Dependency and supply-chain controls: see [dependencies.md](dependencies.md).
+Adding rules as problems recur: see [growing-guardrails.md](growing-guardrails.md).
 
 ## Highest leverage for agentic work
 
