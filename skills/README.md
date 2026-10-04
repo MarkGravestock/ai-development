@@ -88,6 +88,7 @@ skill (`tropes.md`, `registers.md`); the `notes/` skills carry a subset via the
 | Skill | Purpose |
 |---|---|
 | `spring-boot-4-gradle-9-upgrade` | Task skill for the Spring Boot 4 / Gradle 9 migration |
+| `promote-to-guardrail` | PoC: turn a finding seen twice into a tested ast-grep, Ruff or import-linter rule in the gate (see `practices/growing-guardrails.md`) |
 | `spring-boot-configuration` | Where each value belongs, `@ConfigurationProperties` binding, startup validation, precedence, secrets |
 
-Both sit in their own dir directly under `skills/` — a `spring-boot/` topic dir is worth making once a third accrues.
+These sit in their own dir directly under `skills/` — a `spring-boot/` topic dir is worth making once a third accrues.

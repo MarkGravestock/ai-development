@@ -1,0 +1,4 @@
+# ast-grep project config: project-specific guardrails grown from repeat findings.
+ruleDirs: [rules]
+testConfigs:
+  - testDir: rule-tests
