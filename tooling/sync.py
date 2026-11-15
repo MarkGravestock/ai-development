@@ -14,12 +14,18 @@ Usage:
     uv run poe sync                    # copy every skill (default)
     uv run poe sync-link               # symlink every skill instead
 
-    python tooling/sync.py [copy|link] [SUBDIR]
+    python tooling/sync.py [copy|link] [--agent AGENT] [SUBDIR]
 
     SUBDIR narrows the install to one topic or skill, relative to skills/:
         python tooling/sync.py copy design
         python tooling/sync.py link design/cupid
         python tooling/sync.py design/cupid       # mode defaults to copy
+
+    --agent installs for one agent only (claude, tabnine or opencode) instead
+    of all three; repeat it to pick two:
+        python tooling/sync.py --agent claude
+        python tooling/sync.py link --agent opencode design/cupid
+        uv run poe sync --agent claude
 
 Overridable via env: CLAUDE_SKILLS_DIR, TABNINE_SKILLS_DIR, OPENCODE_SKILLS_DIR,
 NOTES_ROOT
@@ -73,13 +79,22 @@ def opencode_default() -> Path:
     return base / "opencode" / "skills"
 
 
-def targets() -> list[Path]:
+RELOAD_HINTS = {
+    "claude": "Claude Code: restart session (or /skills if available)",
+    "tabnine": "Tabnine CLI: /skills reload",
+    "opencode": "opencode:    restart session; verify with `opencode debug skill`",
+}
+AGENTS = tuple(RELOAD_HINTS)
+
+
+def targets(agents: tuple[str, ...] = AGENTS) -> list[Path]:
     home = Path.home()
-    return [
-        Path(os.environ.get("CLAUDE_SKILLS_DIR", home / ".claude" / "skills")),
-        Path(os.environ.get("TABNINE_SKILLS_DIR", home / ".tabnine" / "agent" / "skills")),
-        Path(os.environ.get("OPENCODE_SKILLS_DIR", opencode_default())),
-    ]
+    all_targets = {
+        "claude": Path(os.environ.get("CLAUDE_SKILLS_DIR", home / ".claude" / "skills")),
+        "tabnine": Path(os.environ.get("TABNINE_SKILLS_DIR", home / ".tabnine" / "agent" / "skills")),
+        "opencode": Path(os.environ.get("OPENCODE_SKILLS_DIR", opencode_default())),
+    }
+    return [all_targets[agent] for agent in agents]
 
 
 def remove(path: Path) -> None:
@@ -127,7 +142,7 @@ def sync_notes_tools() -> None:
     print(f"  copy  tools/notes_tools.py -> {notes_root / 'tools'}")
 
 
-def install(mode: str, root: Path) -> None:
+def install(mode: str, root: Path, agents: tuple[str, ...] = AGENTS) -> None:
     write_companions()
 
     skills = discover_skills(root)
@@ -135,7 +150,7 @@ def install(mode: str, root: Path) -> None:
         raise SystemExit(f"No SKILL.md found under {root}")
 
     for name, skill_dir in skills:
-        for target in targets():
+        for target in targets(agents):
             target.mkdir(parents=True, exist_ok=True)
             dest = target / name
             if mode == "link":
@@ -162,26 +177,55 @@ def resolve_root(subdir: str | None) -> Path:
     return root
 
 
-def parse_args(argv: list[str]) -> tuple[str, Path]:
-    args = [a for a in argv[1:] if a != "--"]
+def usage_error(prog: str, message: str | None = None) -> SystemExit:
+    if message:
+        print(message, file=sys.stderr)
+    print(
+        f"usage: {prog} [copy|link] [--agent {'|'.join(AGENTS)}]... [subdir]",
+        file=sys.stderr,
+    )
+    return SystemExit(2)
+
+
+def parse_args(argv: list[str]) -> tuple[str, Path, tuple[str, ...]]:
+    prog = argv[0]
+    positional: list[str] = []
+    chosen: list[str] = []
+    rest = iter(a for a in argv[1:] if a != "--")
+    for arg in rest:
+        if arg == "--agent":
+            value = next(rest, None)
+            if value is None:
+                raise usage_error(prog, "--agent needs a value")
+        elif arg.startswith("--agent="):
+            value = arg.split("=", 1)[1]
+        elif arg.startswith("-"):
+            raise usage_error(prog, f"unknown option: {arg}")
+        else:
+            positional.append(arg)
+            continue
+        if value not in AGENTS:
+            raise usage_error(prog, f"unknown agent: {value!r} (choose from {', '.join(AGENTS)})")
+        chosen.append(value)
+
     mode = "copy"
-    if args and args[0] in ("copy", "link"):
-        mode, *args = args
-    if len(args) > 1:
-        print(f"usage: {argv[0]} [copy|link] [subdir]", file=sys.stderr)
-        raise SystemExit(2)
-    subdir = args[0] if args else None
-    return mode, resolve_root(subdir)
+    if positional and positional[0] in ("copy", "link"):
+        mode, *positional = positional
+    if len(positional) > 1:
+        raise usage_error(prog)
+    subdir = positional[0] if positional else None
+    # Keep the canonical order and drop repeats; no --agent means all of them.
+    agents = tuple(a for a in AGENTS if a in chosen) or AGENTS
+    return mode, resolve_root(subdir), agents
 
 
 def main(argv: list[str]) -> int:
-    mode, root = parse_args(argv)
-    install(mode, root)
+    mode, root, agents = parse_args(argv)
+    install(mode, root, agents)
     print()
     print("Done. Reload to pick up changes:")
-    print("  Claude Code: restart session (or /skills if available)")
-    print("  Tabnine CLI: /skills reload")
-    print("  opencode:    restart session; verify with `opencode debug skill`")
+    for agent in agents:
+        print(f"  {RELOAD_HINTS[agent]}")
     return 0
 
 

@@ -73,8 +73,9 @@ investment proportionate to half-life.
 uv run poe sync                      # copy everything to every target below
 uv run poe sync-link                 # symlink instead — edits in this repo apply live
 uv run poe sync -- design/cupid      # narrow to one topic or skill dir, recursively
+uv run poe sync --agent claude       # one harness only: claude, tabnine or opencode (repeatable)
 
-python tooling/sync.py [copy|link] [subdir]   # same, without uv/poe — stdlib-only
+python tooling/sync.py [copy|link] [--agent AGENT] [subdir]   # same, without uv/poe — stdlib-only
 ```
 
 | Harness | Install target | Override |
